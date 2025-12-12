@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8" />
   <title>Angket Kepuasan Kinerja Kepala Sekolah</title>
@@ -8,163 +9,276 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #f6f7f9;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, #e0e7ff, #f8fafc);
       margin: 0;
       padding: 20px;
+      color: #1f2937;
     }
+
     .container {
-      max-width: 700px;
+      max-width: 760px;
       margin: auto;
       background: #ffffff;
-      padding: 24px;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
     }
+
     h1 {
       text-align: center;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
+      font-size: 26px;
+      color: #1e3a8a;
     }
-    .question {
-      margin-bottom: 16px;
+
+    .subtitle {
+      text-align: center;
+      color: #475569;
+      font-size: 14px;
+      margin-bottom: 28px;
     }
-    .scale label {
-      margin-right: 10px;
+
+    .form-group {
+      margin-bottom: 24px;
     }
-    button {
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    select {
       width: 100%;
       padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5f5;
+      font-size: 14px;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 24px 0;
+    }
+
+    .question {
+      margin-bottom: 22px;
+      padding-bottom: 18px;
+      border-bottom: 1px dashed #e5e7eb;
+    }
+
+    .question p {
+      margin: 0 0 10px 0;
+      font-weight: 500;
+    }
+
+    .scale {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .scale input {
+      display: none;
+    }
+
+    .scale label {
+      padding: 8px 14px;
+      border: 1px solid #c7d2fe;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      background: #f8fafc;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .scale input:checked+label {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+      font-weight: 600;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
       background: #2563eb;
       color: #fff;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
       font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.2s ease;
     }
+
     button:hover {
       background: #1e40af;
     }
+
     .success {
-      color: green;
-      text-align: center;
       margin-top: 20px;
+      padding: 14px;
+      border-radius: 8px;
+      background: #dcfce7;
+      color: #166534;
+      text-align: center;
+      font-weight: 600;
       display: none;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 22px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
     }
   </style>
 </head>
 
 <body>
-<div class="container">
-  <h1>Angket Kepuasan Kinerja Kepala Sekolah</h1>
-  <p>Silakan isi angket berikut secara jujur dan objektif.</p>
+  <div class="container">
+    <h1>Angket Kepuasan Kinerja Kepala Sekolah</h1>
+    <div class="subtitle">
+      Mohon mengisi angket berikut dengan jujur dan objektif
+    </div>
 
-  <label>Peran Responden:</label>
-  <select id="role">
-    <option value="guru">Guru</option>
-    <option value="tenaga_kependidikan">Tenaga Kependidikan</option>
-    <option value="orang_tua">Orang Tua</option>
-  </select>
+    <div class="form-group">
+      <label>Peran Responden</label>
+      <select id="role">
+        <option value="guru">Guru</option>
+        <option value="tenaga_kependidikan">Tenaga Kependidikan</option>
+        <option value="orang_tua">Orang Tua</option>
+      </select>
+    </div>
 
-  <hr />
+    <hr />
 
-  <div id="questions"></div>
+    <div id="questions"></div>
 
-  <button onclick="submitSurvey()">Kirim Angket</button>
+    <button onclick="submitSurvey()">Kirim Angket</button>
 
-  <div class="success" id="successMsg">
-    Terima kasih. Angket berhasil dikirim.
+    <div class="success" id="successMsg">
+      Terima kasih. Angket Anda berhasil dikirim.
+    </div>
   </div>
-</div>
 
-<script>
-  // ===== KONFIGURASI SUPABASE =====
-  const SUPABASE_URL = "https://hanxzqsfwcshypwdntwn.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhhbnh6cXNmd2NzaHlwd2RudHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1NTIzMDQsImV4cCI6MjA4MTEyODMwNH0.3FSCyRBmR_2xcQanQF9uGS-QlCO7RdGIsr3vXtCML-A";
+  <script>
+      const SUPABASE_URL = "https://hanxzqsfwcshypwdntwn.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhhbnh6cXNmd2NzaHlwd2RudHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1NTIzMDQsImV4cCI6MjA4MTEyODMwNH0.3FSCyRBmR_2xcQanQF9uGS-QlCO7RdGIsr3vXtCML-A";
 
-  const supabase = supabaseJs.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
+      // ⬇️ ambil createClient dari global supabase (library)
+      const { createClient } = window.supabase;
 
-  const SCHOOL_ID = "1";
+      // ⬇️ buat client dengan nama BERBEDA
+      const supabaseClient = createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
 
-  // ===== DATA PERTANYAAN (STATIS) =====
-  const questions = [
-    { id: "q1", text: "Kepala sekolah memiliki kepemimpinan yang baik" },
-    { id: "q2", text: "Kepala sekolah bersikap adil dan objektif" },
-    { id: "q3", text: "Komunikasi kepala sekolah berjalan efektif" },
-    { id: "q4", text: "Kepala sekolah memberi teladan yang baik" },
-    { id: "q5", text: "Kepala sekolah responsif terhadap masukan" }
-  ];
+      // console.log("Supabase OK", supabaseClient);
 
-  const answers = {};
+    const SCHOOL_ID = "1";
 
-  // ===== RENDER PERTANYAAN =====
-  const qContainer = document.getElementById("questions");
+    const questions = [{
+        id: "q1",
+        text: "Kepala sekolah memiliki kepemimpinan yang baik"
+      },
+      {
+        id: "q2",
+        text: "Kepala sekolah bersikap adil dan objektif"
+      },
+      {
+        id: "q3",
+        text: "Komunikasi kepala sekolah berjalan efektif"
+      },
+      {
+        id: "q4",
+        text: "Kepala sekolah memberi teladan yang baik"
+      },
+      {
+        id: "q5",
+        text: "Kepala sekolah responsif terhadap masukan"
+      }
+    ];
 
-  questions.forEach(q => {
-    const div = document.createElement("div");
-    div.className = "question";
+    const answers = {};
+    const qContainer = document.getElementById("questions");
 
-    div.innerHTML = `
+    questions.forEach(q => {
+      const div = document.createElement("div");
+      div.className = "question";
+
+      div.innerHTML = `
       <p>${q.text}</p>
       <div class="scale">
         ${[1,2,3,4,5].map(n => `
-          <label>
-            <input type="radio" name="${q.id}" value="${n}"
-              onchange="answers['${q.id}']=${n}">
-            ${n}
-          </label>
+          <input type="radio" id="${q.id}_${n}" name="${q.id}" value="${n}"
+            onchange="answers['${q.id}']=${n}">
+          <label for="${q.id}_${n}">${n}</label>
         `).join("")}
       </div>
     `;
 
-    qContainer.appendChild(div);
-  });
+      qContainer.appendChild(div);
+    });
 
-  // ===== SUBMIT =====
-  async function submitSurvey() {
-    if (Object.keys(answers).length !== questions.length) {
-      alert("Harap menjawab semua pertanyaan.");
-      return;
+    async function submitSurvey() {
+      if (Object.keys(answers).length !== questions.length) {
+        alert("Harap menjawab seluruh pertanyaan.");
+        return;
+      }
+
+      const role = document.getElementById("role").value;
+
+      // 1. INSERT RESPONSE
+      const { data: response, error } = await supabaseClient
+        .from("survey_responses")
+        .insert({
+          school_id: SCHOOL_ID,
+          role: role
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error(error);
+        alert("Gagal menyimpan respon");
+        return;
+      }
+
+      // 2. INSERT ANSWERS
+      const payload = questions.map(q => ({
+        response_id: response.id,
+        question_id: q.id,
+        score: answers[q.id]
+      }));
+
+      const { error: answerError } = await supabaseClient
+        .from("survey_answers")
+        .insert(payload);
+
+      if (answerError) {
+        console.error(answerError);
+        alert("Gagal menyimpan jawaban");
+        return;
+      }
+
+      document.getElementById("successMsg").style.display = "block";
     }
-
-    const role = document.getElementById("role").value;
-
-    // 1. Insert response
-    const { data: response, error } = await supabase
-      .from("survey_responses")
-      .insert({
-        school_id: SCHOOL_ID,
-        role: role
-      })
-      .select()
-      .single();
-
-    if (error) {
-      alert("Gagal menyimpan respon.");
-      return;
-    }
-
-    // 2. Insert answers
-    const payload = questions.map(q => ({
-      response_id: response.id,
-      question_id: q.id,
-      score: answers[q.id]
-    }));
-
-    const { error: answerError } = await supabase
-      .from("survey_answers")
-      .insert(payload);
-
-    if (answerError) {
-      alert("Gagal menyimpan jawaban.");
-      return;
-    }
-
-    document.getElementById("successMsg").style.display = "block";
-  }
-</script>
+  </script>
 </body>
+
 </html>
