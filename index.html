@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Angket Kepuasan Kinerja Kepala Sekolah</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6f7f9;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .question {
+      margin-bottom: 16px;
+    }
+    .scale label {
+      margin-right: 10px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1e40af;
+    }
+    .success {
+      color: green;
+      text-align: center;
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <h1>Angket Kepuasan Kinerja Kepala Sekolah</h1>
+  <p>Silakan isi angket berikut secara jujur dan objektif.</p>
+
+  <label>Peran Responden:</label>
+  <select id="role">
+    <option value="guru">Guru</option>
+    <option value="tenaga_kependidikan">Tenaga Kependidikan</option>
+    <option value="orang_tua">Orang Tua</option>
+  </select>
+
+  <hr />
+
+  <div id="questions"></div>
+
+  <button onclick="submitSurvey()">Kirim Angket</button>
+
+  <div class="success" id="successMsg">
+    Terima kasih. Angket berhasil dikirim.
+  </div>
+</div>
+
+<script>
+  // ===== KONFIGURASI SUPABASE =====
+  const SUPABASE_URL = "https://hanxzqsfwcshypwdntwn.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhhbnh6cXNmd2NzaHlwd2RudHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1NTIzMDQsImV4cCI6MjA4MTEyODMwNH0.3FSCyRBmR_2xcQanQF9uGS-QlCO7RdGIsr3vXtCML-A";
+
+  const supabase = supabaseJs.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+  const SCHOOL_ID = "1";
+
+  // ===== DATA PERTANYAAN (STATIS) =====
+  const questions = [
+    { id: "q1", text: "Kepala sekolah memiliki kepemimpinan yang baik" },
+    { id: "q2", text: "Kepala sekolah bersikap adil dan objektif" },
+    { id: "q3", text: "Komunikasi kepala sekolah berjalan efektif" },
+    { id: "q4", text: "Kepala sekolah memberi teladan yang baik" },
+    { id: "q5", text: "Kepala sekolah responsif terhadap masukan" }
+  ];
+
+  const answers = {};
+
+  // ===== RENDER PERTANYAAN =====
+  const qContainer = document.getElementById("questions");
+
+  questions.forEach(q => {
+    const div = document.createElement("div");
+    div.className = "question";
+
+    div.innerHTML = `
+      <p>${q.text}</p>
+      <div class="scale">
+        ${[1,2,3,4,5].map(n => `
+          <label>
+            <input type="radio" name="${q.id}" value="${n}"
+              onchange="answers['${q.id}']=${n}">
+            ${n}
+          </label>
+        `).join("")}
+      </div>
+    `;
+
+    qContainer.appendChild(div);
+  });
+
+  // ===== SUBMIT =====
+  async function submitSurvey() {
+    if (Object.keys(answers).length !== questions.length) {
+      alert("Harap menjawab semua pertanyaan.");
+      return;
+    }
+
+    const role = document.getElementById("role").value;
+
+    // 1. Insert response
+    const { data: response, error } = await supabase
+      .from("survey_responses")
+      .insert({
+        school_id: SCHOOL_ID,
+        role: role
+      })
+      .select()
+      .single();
+
+    if (error) {
+      alert("Gagal menyimpan respon.");
+      return;
+    }
+
+    // 2. Insert answers
+    const payload = questions.map(q => ({
+      response_id: response.id,
+      question_id: q.id,
+      score: answers[q.id]
+    }));
+
+    const { error: answerError } = await supabase
+      .from("survey_answers")
+      .insert(payload);
+
+    if (answerError) {
+      alert("Gagal menyimpan jawaban.");
+      return;
+    }
+
+    document.getElementById("successMsg").style.display = "block";
+  }
+</script>
+</body>
+</html>
